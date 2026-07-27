@@ -32,17 +32,95 @@ object NumistaRepository {
             .create(NumistaApiService::class.java)
     }
 
+    /**
+     * Lee la clave de Numista desde BuildConfig (generada por el plugin "secrets" a partir
+     * de app/.env, que NO se sube a git). Si no está configurada, devuelve cadena vacía y
+     * las llamadas a la API fallarán de forma controlada en vez de usar una clave filtrada.
+     */
     fun getApiKey(): String {
         return try {
             val keyFromBuildConfig = BuildConfig.NUMISTA_API_KEY
             if (keyFromBuildConfig.isNotBlank() && keyFromBuildConfig != "NUMISTA_API_KEY_DEFAULT_VALUE") {
                 keyFromBuildConfig
             } else {
-                "Hboy5SmSc4YrErCxmKupucIUGAqSRbSjuZ3A5Rv"
+                ""
             }
         } catch (e: Throwable) {
-            "Hboy5SmSc4YrErCxmKupucIUGAqSRbSjuZ3A5Rv"
+            ""
         }
+    }
+
+    private fun normalizeKey(countryCode: String, year: Int, title: String): String {
+        val cleanTitle = title.lowercase()
+            .replace(Regex("[^a-z0-9]+"), "")
+        return "${countryCode.uppercase()}_${year}_$cleanTitle"
+    }
+
+    /**
+     * Busca en Numista monedas conmemorativas de 2€ nuevas (por país y año) que no estén
+     * ya en `existingTitleKeys` (mismo formato que normalizeKey, para poder comparar contra
+     * el catálogo estático + lo que ya haya en la base de datos local).
+     *
+     * No sustituye al catálogo estático existente: solo añade por encima lo que Numista
+     * tenga catalogado y aún no esté en la app.
+     */
+    suspend fun discoverNewCommemorativeCoins(
+        countries: List<com.example.data.model.EuroCountry>,
+        fromYear: Int,
+        toYear: Int,
+        existingTitleKeys: Set<String>
+    ): List<CatalogCoin> = withContext(Dispatchers.IO) {
+        val key = getApiKey()
+        if (key.isBlank()) {
+            Log.w(TAG, "Sin NUMISTA_API_KEY configurada (app/.env) — no se puede buscar catálogo nuevo")
+            return@withContext emptyList()
+        }
+
+        val found = mutableListOf<CatalogCoin>()
+        val seenInThisRun = mutableSetOf<String>()
+
+        for (country in countries) {
+            for (yr in fromYear..toYear) {
+                try {
+                    val query = "2 euro commemorative ${country.name} $yr"
+                    val response = apiService.searchTypes(apiKey = key, query = query)
+                    val types = response.types ?: continue
+
+                    for (type in types) {
+                        val title = type.title?.trim() ?: continue
+                        val issuerCode = type.issuer?.code?.lowercase() ?: ""
+                        val issuerName = type.issuer?.name?.lowercase() ?: ""
+                        // Descarta resultados que Numista devuelve pero no son del país buscado
+                        val matchesCountry = issuerCode.contains(country.code.lowercase()) ||
+                                issuerName.contains(country.name.lowercase())
+                        if (!matchesCountry) continue
+
+                        val normalized = normalizeKey(country.code, yr, title)
+                        if (normalized in existingTitleKeys || normalized in seenInThisRun) continue
+                        seenInThisRun.add(normalized)
+
+                        found.add(
+                            CatalogCoin(
+                                id = "numista_${type.id ?: normalized}",
+                                countryCode = country.code,
+                                countryName = country.name,
+                                year = yr,
+                                denomination = com.example.data.model.CoinDenomination.EURO_2_COMMEMORATIVE,
+                                title = title,
+                                description = "Catalogada en Numista (numista.com), aún no verificada contra fuente oficial del país emisor.",
+                                isCommemorative = true,
+                                mintageInfo = "",
+                                isCustom = true,
+                                imageUrl = type.obverse_thumbnail
+                            )
+                        )
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error buscando en Numista ${country.code} $yr", e)
+                }
+            }
+        }
+        found
     }
 
     suspend fun fetchCoinObverseImage(coin: CatalogCoin): String? = withContext(Dispatchers.IO) {
