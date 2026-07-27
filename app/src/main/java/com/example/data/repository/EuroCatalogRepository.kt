@@ -531,10 +531,61 @@ class EuroCatalogRepository(private val coinDao: CoinCollectionDao) {
             prefs.edit().putBoolean("official_catalog_updated_v2026", true).apply()
         }
 
+        // --- Descubrimiento real vía Numista ---
+        // Se añade por encima de todo lo anterior, sin sustituir el catálogo estático.
+        // Busca monedas conmemorativas de los últimos años que aún no estén ni en el
+        // catálogo fijo ni ya guardadas como moneda personalizada en la base de datos.
+        val numistaAdded = mutableListOf<com.example.data.model.CatalogCoinSummary>()
+        try {
+            val currentYear = java.time.Year.now().value
+            val staticKeys = staticCommemorativesCatalog.map {
+                "${it.countryCode.uppercase()}_${it.year}_${normalizeTitleForDeduplication(it.title)}"
+            }.toSet()
+            val dbKeys = existingCustomCoins.map {
+                "${it.countryCode.uppercase()}_${it.year}_${normalizeTitleForDeduplication(it.title)}"
+            }.toSet()
+
+            val discovered = NumistaRepository.discoverNewCommemorativeCoins(
+                countries = countriesList,
+                fromYear = currentYear - 1,
+                toYear = currentYear + 1,
+                existingTitleKeys = staticKeys + dbKeys
+            )
+
+            discovered.forEach { coin ->
+                coinDao.insertCustomCoin(
+                    CustomCatalogCoinEntity(
+                        id = coin.id,
+                        countryCode = coin.countryCode,
+                        countryName = coin.countryName,
+                        year = coin.year,
+                        denominationCode = coin.denomination.code,
+                        title = coin.title,
+                        description = coin.description,
+                        isCommemorative = coin.isCommemorative,
+                        mintageInfo = coin.mintageInfo
+                    )
+                )
+                numistaAdded.add(
+                    com.example.data.model.CatalogCoinSummary(
+                        id = coin.id,
+                        title = coin.title,
+                        countryCode = coin.countryCode,
+                        countryName = coin.countryName,
+                        year = coin.year,
+                        denomination = coin.denomination.label,
+                        addedDate = java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale("es", "ES")).format(java.util.Date())
+                    )
+                )
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("EuroCatalogRepository", "Error consultando Numista", e)
+        }
+
         return com.example.data.model.CatalogUpdateResult(
-            addedCount = newAddedCount,
+            addedCount = newAddedCount + numistaAdded.size,
             removedCount = newRemovedCount,
-            addedCoins = fullAddedList,
+            addedCoins = fullAddedList + numistaAdded,
             removedCoins = finalRemovedList,
             isSuccess = true,
             errorMessage = null
