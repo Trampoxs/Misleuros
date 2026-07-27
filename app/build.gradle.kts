@@ -21,8 +21,9 @@ android {
     versionName = "1.0"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    buildConfigField("String", "NUMISTA_API_KEY", "\"Hboy5SmSc4YrErCxmKupucIUGAqSRbSjuZ3A5Rv\"")
-  }
+    // NUMISTA_API_KEY ya se genera automáticamente en BuildConfig por el plugin
+   // "secrets" a partir de app/.env (tu clave real, NO se sube a git) o,
+   // si no existe, del placeholder en app/.env.example.
 
   signingConfigs {
     create("release") {
