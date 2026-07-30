@@ -15,7 +15,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 object NumistaRepository {
     private const val TAG = "NumistaRepository"
-    private const val BASE_URL = "https://api.numista.com/api/"
+    private const val BASE_URL = "https://api.numista.com/"
 
     private val memoryCache = ConcurrentHashMap<String, String>()
 
