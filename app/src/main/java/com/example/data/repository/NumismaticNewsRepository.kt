@@ -230,6 +230,23 @@ class NumismaticNewsRepository {
 
         _newsFlow.value = initialNewsList.toList()
         _lastSyncFlow.value = getTodayDateString()
+
+        // Fetch / update Numista API obverse images for news coins
+        val newsCoins = initialNewsList.map { news ->
+            com.example.data.model.CatalogCoin(
+                id = news.id,
+                countryCode = news.countryCode,
+                countryName = news.countryName,
+                year = news.year,
+                denomination = com.example.data.model.CoinDenomination.EURO_2_COMMEMORATIVE,
+                title = news.title,
+                description = news.summary,
+                isCommemorative = true,
+                imageUrl = news.imageUrl
+            )
+        }
+        NumistaRepository.preFetchImagesForCoins(newsCoins)
+
         _isRefreshingFlow.value = false
 
         return newArticlesCount

@@ -9,28 +9,9 @@ interface NumistaApiService {
     suspend fun searchTypes(
         @Header("Numista-API-Key") apiKey: String,
         @Query("q") query: String,
-        @Query("category") category: String = "coin",
-        @Query("count") count: Int = 20
+        @Query("category") category: String = "coin"
     ): NumistaSearchResponse
-
-    @GET("v3/types/{id}")
-    suspend fun getTypeDetail(
-        @Header("Numista-API-Key") apiKey: String,
-        @retrofit2.http.Path("id") id: Long,
-        @Query("lang") lang: String = "es"
-    ): NumistaTypeDetail
 }
-
-data class NumistaTypeDetail(
-    val id: Long? = null,
-    val title: String? = null,
-    val obverse: NumistaSide? = null,
-    val reverse: NumistaSide? = null
-)
-
-data class NumistaSide(
-    val picture: String? = null
-)
 
 data class NumistaSearchResponse(
     val count: Int? = null,

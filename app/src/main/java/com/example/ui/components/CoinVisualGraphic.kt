@@ -20,7 +20,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,10 +42,12 @@ import coil.compose.SubcomposeAsyncImageContent
 import coil.request.ImageRequest
 import com.example.data.model.CatalogCoin
 import com.example.data.model.CoinDenomination
-import com.example.data.repository.NumistaRepository
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
+
+import androidx.compose.runtime.LaunchedEffect
+import com.example.data.repository.NumistaRepository
 
 @Composable
 fun CoinVisualGraphic(
@@ -57,22 +58,31 @@ fun CoinVisualGraphic(
     allowFlip: Boolean = false
 ) {
     val context = LocalContext.current
-    val hardcodedUrl = OfficialEuroCoinImageProvider.getImageUrl(coin)
-    var imageUrl by remember(coin.id) { mutableStateOf(hardcodedUrl) }
+    var numistaFetchedUrl by remember(coin.id, coin.countryCode, coin.year, coin.title) { mutableStateOf<String?>(null) }
 
-    // Cada moneda que se muestra en pantalla se intenta verificar en segundo plano contra
-    // Numista (con caché, para no repetir peticiones). Si encuentra una imagen real, la
-    // sustituye; si no encuentra nada o falla, se queda con la que ya hubiera.
-    LaunchedEffect(coin.id) {
-        val verified = NumistaRepository.resolveVerifiedImageUrl(coin)
-        if (!verified.isNullOrBlank()) {
-            imageUrl = verified
+    val officialUrl = remember(coin.id, coin.countryCode, coin.year, coin.title, coin.denomination) {
+        OfficialEuroCoinImageProvider.getImageUrl(coin)
+    }
+
+    val needsNumistaFetch = officialUrl.isBlank() && coin.imageUrl.isNullOrBlank()
+
+    LaunchedEffect(coin.id, coin.countryCode, coin.year, coin.title, needsNumistaFetch) {
+        if (needsNumistaFetch) {
+            val fetched = NumistaRepository.fetchCoinObverseImage(coin)
+            if (!fetched.isNullOrBlank()) {
+                numistaFetchedUrl = fetched
+            }
         }
     }
 
-    val imageRequest = remember(imageUrl) {
+    val finalImageUrl = coin.imageUrl.takeIf { !it.isNullOrBlank() }
+        ?: officialUrl.takeIf { it.isNotBlank() }
+        ?: numistaFetchedUrl
+        ?: ""
+
+    val imageRequest = remember(finalImageUrl) {
         ImageRequest.Builder(context)
-            .data(imageUrl.ifBlank { null })
+            .data(finalImageUrl.ifBlank { null })
             .addHeader(
                 "User-Agent",
                 "Mozilla/5.0 (Linux; Android 13; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Mobile Safari/537.36 EuroCoinCatalog/1.0"

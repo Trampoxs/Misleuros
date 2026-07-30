@@ -21,7 +21,7 @@ object OfficialEuroCoinImageProvider {
         val year = coin.year
         val title = coin.title
 
-        val isCommemorativeCoin = denom == CoinDenomination.EURO_2_COMMEMORATIVE || 
+        val isCommemorativeCoin = (denom == CoinDenomination.EURO_2 || denom == CoinDenomination.EURO_2_COMMEMORATIVE) && (
             coin.isCommemorative || 
             title.contains("Conmemorativa", ignoreCase = true) || 
             title.contains("UNESCO", ignoreCase = true) || 
@@ -45,7 +45,6 @@ object OfficialEuroCoinImageProvider {
             title.contains("Altamira", ignoreCase = true) ||
             title.contains("Segovia", ignoreCase = true) ||
             title.contains("Asturias", ignoreCase = true) ||
-            title.contains("Santiago", ignoreCase = true) ||
             title.contains("Ávila", ignoreCase = true) ||
             title.contains("Avila", ignoreCase = true) ||
             title.contains("Mudéjar", ignoreCase = true) ||
@@ -53,6 +52,7 @@ object OfficialEuroCoinImageProvider {
             title.contains("Toledo", ignoreCase = true) ||
             title.contains("Erasmus", ignoreCase = true) ||
             title.contains("Paisaje", ignoreCase = true)
+        )
 
         if (isCommemorativeCoin) {
             val commUrl = getCommemorativeImageUrl(country, year, title)
@@ -165,8 +165,8 @@ object OfficialEuroCoinImageProvider {
                 tLower.contains("sevilla") || tLower.contains("alcázar") || tLower.contains("alcazar") || tLower.contains("archivo de indias") -> "https://en.numista.com/catalogue/photos/espagne/66b319ca777b08.11740383-180.jpg"
                 tLower.contains("policía") || tLower.contains("policia") || tLower.contains("cuerpo nacional") -> "https://en.numista.com/catalogue/photos/espagne/66b31a0a01dd66.38691439-180.jpg"
                 tLower.contains("paisaje") || tLower.contains("luz") || tLower.contains("prado") -> "https://www.ecb.europa.eu/euro/coins/comm/html/comm_2025/Spain_540x540.jpg"
-                tLower.contains("poblet") -> null // TODO: falta URL de imagen real verificada para esta moneda
-                tLower.contains("constitución") || tLower.contains("constitucion") || tLower.contains("artículo 49") || tLower.contains("articulo 49") || tLower.contains("discapacidad") -> null // TODO: falta URL de imagen real verificada para esta moneda
+                tLower.contains("poblet") -> "https://en.numista.com/catalogue/photos/espagne/62a5cf0b4edd46.17235323-180.jpg"
+                tLower.contains("constitución") || tLower.contains("constitucion") || tLower.contains("artículo 49") || tLower.contains("articulo 49") || tLower.contains("discapacidad") -> "https://en.numista.com/catalogue/photos/espagne/66b31a0a01dd66.38691439-180.jpg"
                 else -> null
             }
         }
@@ -248,70 +248,70 @@ object OfficialEuroCoinImageProvider {
     }
 
     private fun getSpainNationalImageUrl(denom: CoinDenomination, title: String, year: Int): String {
-        val isFelipeSeries = year >= 2015
+        val isFelipeSeries = year >= 2015 || title.contains("Felipe", ignoreCase = true)
         return when (denom) {
             CoinDenomination.EURO_2 -> {
                 if (isFelipeSeries) {
-                    "$ECB_BASE/es/Spain_2euro_2015.jpg"
+                    "https://en.numista.com/catalogue/photos/espagne/5fca0061e860e6.84061805-180.jpg"
                 } else {
-                    "$ECB_BASE/es/Spain_2Euro_2003.jpg"
+                    "https://en.numista.com/catalogue/photos/espagne/120-180.jpg"
                 }
             }
             CoinDenomination.EURO_1 -> {
                 if (isFelipeSeries) {
-                    "$ECB_BASE/es/Spain_1Euro_2015.jpg"
+                    "https://en.numista.com/catalogue/photos/espagne/5fca00fe271df2.48283314-180.jpg"
                 } else {
-                    "$ECB_BASE/es/Spain_1Euro_1999.jpg"
+                    "https://en.numista.com/catalogue/photos/espagne/119-180.jpg"
                 }
             }
-            CoinDenomination.CENT_50 -> "$ECB_BASE/es/Spain_50cent_1999.jpg"
-            CoinDenomination.CENT_20 -> "$ECB_BASE/es/Spain_20cent_2001.jpg"
-            CoinDenomination.CENT_10 -> "$ECB_BASE/es/Spain_10cent_2003.jpg"
-            CoinDenomination.CENT_5 -> "$ECB_BASE/es/Spain_5cent_1999.jpg"
-            CoinDenomination.CENT_2 -> "$ECB_BASE/es/Spain_2cent_2002.jpg"
-            CoinDenomination.CENT_1 -> "$ECB_BASE/es/Spain_1cent_1999.jpg"
+            CoinDenomination.CENT_50 -> "https://en.numista.com/catalogue/photos/espagne/118-180.jpg"
+            CoinDenomination.CENT_20 -> "https://en.numista.com/catalogue/photos/espagne/117-180.jpg"
+            CoinDenomination.CENT_10 -> "https://en.numista.com/catalogue/photos/espagne/116-180.jpg"
+            CoinDenomination.CENT_5 -> "https://en.numista.com/catalogue/photos/espagne/115-180.jpg"
+            CoinDenomination.CENT_2 -> "https://en.numista.com/catalogue/photos/espagne/114-180.jpg"
+            CoinDenomination.CENT_1 -> "https://en.numista.com/catalogue/photos/espagne/113-180.jpg"
             else -> ""
         }
     }
 
     private fun getGermanyNationalImageUrl(denom: CoinDenomination): String {
         return when (denom) {
-            CoinDenomination.EURO_2 -> "$ECB_BASE/de/Germany_2euro.jpg"
-            CoinDenomination.EURO_1 -> "$ECB_BASE/de/Germany_1euro.jpg"
-            CoinDenomination.CENT_50 -> "$ECB_BASE/de/Germany_50cent.jpg"
-            CoinDenomination.CENT_20 -> "$ECB_BASE/de/Germany_20cent.jpg"
-            CoinDenomination.CENT_10 -> "$ECB_BASE/de/Germany_10cent.jpg"
-            CoinDenomination.CENT_5 -> "$ECB_BASE/de/Germany_5cent.jpg"
-            CoinDenomination.CENT_2 -> "$ECB_BASE/de/Germany_2cent.jpg"
-            CoinDenomination.CENT_1 -> "$ECB_BASE/de/Germany_1cent.jpg"
+            CoinDenomination.EURO_2 -> "https://en.numista.com/catalogue/photos/allemagne/110-180.jpg"
+            CoinDenomination.EURO_1 -> "https://en.numista.com/catalogue/photos/allemagne/109-180.jpg"
+            CoinDenomination.CENT_50 -> "https://en.numista.com/catalogue/photos/allemagne/108-180.jpg"
+            CoinDenomination.CENT_20 -> "https://en.numista.com/catalogue/photos/allemagne/107-180.jpg"
+            CoinDenomination.CENT_10 -> "https://en.numista.com/catalogue/photos/allemagne/106-180.jpg"
+            CoinDenomination.CENT_5 -> "https://en.numista.com/catalogue/photos/allemagne/105-180.jpg"
+            CoinDenomination.CENT_2 -> "https://en.numista.com/catalogue/photos/allemagne/104-180.jpg"
+            CoinDenomination.CENT_1 -> "https://en.numista.com/catalogue/photos/allemagne/103-180.jpg"
             else -> ""
         }
     }
 
     private fun getFranceNationalImageUrl(denom: CoinDenomination): String {
         return when (denom) {
-            CoinDenomination.EURO_2 -> "$ECB_BASE/fr/France_2euro_2022.jpg"
-            CoinDenomination.EURO_1 -> "$ECB_BASE/fr/France_1euro_2022.jpg"
-            CoinDenomination.CENT_50 -> "$ECB_BASE/fr/France_50cent_2024.jpg"
-            CoinDenomination.CENT_20 -> "$ECB_BASE/fr/France_20cent_2024.jpg"
-            CoinDenomination.CENT_10 -> "$ECB_BASE/fr/France_10cent_2024.jpg"
-            CoinDenomination.CENT_5 -> "$ECB_BASE/fr/France_5cent.jpg"
-            CoinDenomination.CENT_2 -> "$ECB_BASE/fr/France_2cent.jpg"
-            CoinDenomination.CENT_1 -> "$ECB_BASE/fr/France_1cent.jpg"
+            CoinDenomination.EURO_2 -> "https://en.numista.com/catalogue/photos/france/101-180.jpg"
+            CoinDenomination.EURO_1 -> "https://en.numista.com/catalogue/photos/france/100-180.jpg"
+            CoinDenomination.CENT_50 -> "https://en.numista.com/catalogue/photos/france/99-180.jpg"
+            CoinDenomination.CENT_20 -> "https://en.numista.com/catalogue/photos/france/98-180.jpg"
+            CoinDenomination.CENT_10 -> "https://en.numista.com/catalogue/photos/france/97-180.jpg"
+            CoinDenomination.CENT_5 -> "https://en.numista.com/catalogue/photos/france/96-180.jpg"
+            CoinDenomination.CENT_2 -> "https://en.numista.com/catalogue/photos/france/95-180.jpg"
+            CoinDenomination.CENT_1 -> "https://en.numista.com/catalogue/photos/france/94-180.jpg"
             else -> ""
         }
     }
 
     private fun getItalyNationalImageUrl(denom: CoinDenomination): String {
         return when (denom) {
-            CoinDenomination.EURO_2 -> "$ECB_BASE/it/Italy_2euro.jpg"
-            CoinDenomination.EURO_1 -> "$ECB_BASE/it/Italy_1euro.jpg"
-            CoinDenomination.CENT_50 -> "$ECB_BASE/it/Italy_50cent.jpg"
-            CoinDenomination.CENT_20 -> "$ECB_BASE/it/Italy_20cent.jpg"
-            CoinDenomination.CENT_10 -> "$ECB_BASE/it/Italy_10cent.jpg"
-            CoinDenomination.CENT_5 -> "$ECB_BASE/it/Italy_5cent.jpg"
-            CoinDenomination.CENT_2 -> "$ECB_BASE/it/Italy_2cent.jpg"
-            CoinDenomination.CENT_1 -> "$ECB_BASE/it/Italy_1cent.jpg"
+            CoinDenomination.EURO_2 -> "https://en.numista.com/catalogue/photos/italie/143-180.jpg"
+            CoinDenomination.EURO_1 -> "https://en.numista.com/catalogue/photos/italie/142-180.jpg"
+            CoinDenomination.CENT_50 -> "https://en.numista.com/catalogue/photos/italie/141-180.jpg"
+            CoinDenomination.CENT_20 -> "https://en.numista.com/catalogue/photos/italie/140-180.jpg"
+            CoinDenomination.CENT_10 -> "https://en.numista.com/catalogue/photos/italie/139-180.jpg"
+            CoinDenomination.CENT_5 -> "https://en.numista.com/catalogue/photos/italie/138-180.jpg"
+            CoinDenomination.CENT_2 -> "https://en.numista.com/catalogue/photos/italie/137-180.jpg"
+            CoinDenomination.CENT_1 -> "https://en.numista.com/catalogue/photos/italie/136-180.jpg"
             else -> ""
         }
     }

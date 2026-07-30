@@ -175,6 +175,16 @@ class CoinCollectionViewModel(application: Application) : AndroidViewModel(appli
         initialValue = emptyList()
     )
 
+    init {
+        viewModelScope.launch {
+            filteredCoinItems.collect { items ->
+                if (items.isNotEmpty()) {
+                    com.example.data.repository.NumistaRepository.preFetchImagesForCoins(items.map { it.catalogCoin })
+                }
+            }
+        }
+    }
+
     fun toggleCoinStatus(coinCatalogId: String) {
         viewModelScope.launch {
             val currentItem = allCoinItemsState.value.find { it.catalogCoin.id == coinCatalogId }
@@ -318,14 +328,17 @@ class CoinCollectionViewModel(application: Application) : AndroidViewModel(appli
                 return@launch
             }
 
-            catalogUpdateMessage.value = "Sincronizando catálogo con la base oficial de la Eurozona..."
+            catalogUpdateMessage.value = "Sincronizando catálogo con la base oficial de la Eurozona y Numista..."
             kotlinx.coroutines.delay(600)
+
+            val currentCoins = filteredCoinItems.value.map { it.catalogCoin }
+            com.example.data.repository.NumistaRepository.preFetchImagesForCoins(currentCoins)
 
             catalogUpdateResult.value = result
             if (result.addedCount > 0 || result.removedCount > 0) {
-                catalogUpdateMessage.value = "¡Catálogo actualizado desde la base oficial del BCE! +${result.addedCount} confirmadas, -${result.removedCount} retiradas."
+                catalogUpdateMessage.value = "¡Catálogo e imágenes de Numista actualizadas! +${result.addedCount} confirmadas, -${result.removedCount} retiradas."
             } else {
-                catalogUpdateMessage.value = "No se ha producido ningún cambio. El catálogo oficial del BCE ya se encuentra al día."
+                catalogUpdateMessage.value = "Imágenes de Numista comprobadas. El catálogo se encuentra al día."
             }
 
             isUpdatingCatalog.value = false
