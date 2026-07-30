@@ -165,8 +165,8 @@ object OfficialEuroCoinImageProvider {
                 tLower.contains("sevilla") || tLower.contains("alcázar") || tLower.contains("alcazar") || tLower.contains("archivo de indias") -> "https://en.numista.com/catalogue/photos/espagne/66b319ca777b08.11740383-180.jpg"
                 tLower.contains("policía") || tLower.contains("policia") || tLower.contains("cuerpo nacional") -> "https://en.numista.com/catalogue/photos/espagne/66b31a0a01dd66.38691439-180.jpg"
                 tLower.contains("paisaje") || tLower.contains("luz") || tLower.contains("prado") -> "https://www.ecb.europa.eu/euro/coins/comm/html/comm_2025/Spain_540x540.jpg"
-                tLower.contains("poblet") -> "https://en.numista.com/catalogue/photos/espagne/62a5cf0b4edd46.17235323-180.jpg"
-                tLower.contains("constitución") || tLower.contains("constitucion") || tLower.contains("artículo 49") || tLower.contains("articulo 49") || tLower.contains("discapacidad") -> "https://en.numista.com/catalogue/photos/espagne/66b31a0a01dd66.38691439-180.jpg"
+                tLower.contains("poblet") -> null // TODO: falta URL de imagen real verificada para esta moneda
+                tLower.contains("constitución") || tLower.contains("constitucion") || tLower.contains("artículo 49") || tLower.contains("articulo 49") || tLower.contains("discapacidad") -> null // TODO: falta URL de imagen real verificada para esta moneda
                 else -> null
             }
         }
